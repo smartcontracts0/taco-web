@@ -57,17 +57,22 @@ const encryptToBytes = async (messageString: string) => {
   const message = toBytes(messageString);
   console.log(format('Encrypting message ("%s") ...', messageString));
 
-  const hasPositiveBalance = new conditions.base.rpc.RpcCondition({
-    chain: chainId,
-    method: 'eth_getBalance',
-    parameters: [':userAddress', 'latest'],
+  const ownsToken = new conditions.base.contract.ContractCondition({
+    chain: 80002,
+    method: 'balanceOf',
+    parameters: [':userAddress'],
+    standardContractType: 'ERC20',
+    contractAddress: '0xa10EaE4CB345A4E265f8f92829fE13E89D82023c',
     returnValueTest: {
-      comparator: '>=',
-      value: 0,
+      comparator: '==',
+      value: 1000000000000000000, //This uses uint256, so the number is multiplied with 10^18
     },
   });
+
+  
+
   console.assert(
-    hasPositiveBalance.requiresSigner(),
+    ownsToken.requiresSigner(),
     'Condition requires signer',
   );
 
@@ -75,7 +80,7 @@ const encryptToBytes = async (messageString: string) => {
     provider,
     domain,
     message,
-    hasPositiveBalance,
+    ownsToken,
     ritualId,
     encryptorSigner,
   );
@@ -121,7 +126,7 @@ const runExample = async () => {
   }
   await initialize();
 
-  const messageString = 'This is a secret 🤐';
+  const messageString = '@SRR396636.sra.1 HWI-EAS137R_0379:1:1:11336:1079 length=100 CAGCCGCTGGGTCCGCGCGACCGGCTGGTGCTGGGGCAGGTCGGGGGGGAGCAGATCCGGCTCGGCCTGCCGCCCGGCCGGTGCACGCCGTCGCGCGGGC +SRR396636.sra.1 HWI-EAS137R_0379:1:1:11336:1079 length=100';
   const encryptedBytes = await encryptToBytes(messageString);
   console.log('Ciphertext: ', toHexString(encryptedBytes));
 
